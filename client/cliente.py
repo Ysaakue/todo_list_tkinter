@@ -88,7 +88,7 @@ class Interface(Tk):
 				self.photoLogout=PhotoImage(file="img/logout.png")
 				self.logoutB.config(image=self.photoLogout,width="20",height="20")
 				self.logoutB.pack(side="right", padx=5)
-				self.lblUser = Label(self.toobarFrame, text="{}".format(self.currentUser),
+				self.lblUser = Label(self.toobarFrame, text="{}".format(self.currentUser["username"]),
 															bg='gray25', fg = 'white smoke')
 				self.lblUser.pack(side="right",padx=5)
 			else:
@@ -347,6 +347,7 @@ class Interface(Tk):
 
 	def handleSearch(self):																												# Método para fazer buscas nos filmes que já estão
 		busca = self.searchE.get()																									# Recebe string para fazer busca
+		self.searchE.delete("0", "end")
 		filmes_busca = []																														# Cria lista
 		self.onlyRefresh()																													# Chama método para atualizar lista de filmes
 		
@@ -376,6 +377,9 @@ class Interface(Tk):
 		atores = self.entryAtores.get()
 		diretores = self.entryDiretores.get()
 		roteiristas = self.entryRoteiristas.get()
+		self.entryAtores.delete("0","end")
+		self.entryDiretores.delete("0","end")
+		self.entryRoteiristas.delete("0","end")
 
 		if len(titulo)<1 or len(atores)<1 or len(diretores)<1 or len(roteiristas)<1:# Caso todos os inputs estejam vazios
 			self.changeMSG("Todos os campos devem ser preenchidos",'red',"subscribe")	# Mostra mensagem de erro com cor vermelha
@@ -390,21 +394,39 @@ class Interface(Tk):
 			server.sendto(dumps(data), ADDR)																					# Envia a reuisição e os dados para o servidor
 			response, address = server.recvfrom(BUFSIZ)																# Recebe a resposta da requisição
 			response = loads(response)																								# Decodifica o objeto JSON
-			if(response["response"]):																									# Caso a resposta seja true
+			
+			if(response["response"]["return"]):																									# Caso a resposta seja true
 				self.changeMSG("Cadastrado com sucesso","green","subscribe")						# Mostra mensagem de sucesso com cor verde
+				self.entryTitulo.delete("0","end")
 			else:																																			# Caso a resposta seja false
-				self.changeMSG("Erro ao cadastrar","blue","subscribe")									# Mostra mensagem de erro com cor azul
+				self.changeMSG(response["response"]["msg"],"red","subscribe")									# Mostra mensagem de erro com cor azul
 
 	def handleLogin(self):
 		user = self.entryUsername.get()
 		passw = self.entryPassword.get()
-		cpassw = self.entryCPassword.get()
 
 		if len(user)<1 or len(passw)<1:
 			self.changeMSG("Todos os campos devem ser preenchidos",'red',"login")
+		else:
+			data = {}
+			data["rota"] = "getUsuarios"
+			data["username"] = user
+			data["password"] = passw
+			server.sendto(dumps(data), ADDR)																					# Envia a reuisição e os dados para o servidor
+			response, address = server.recvfrom(BUFSIZ)																# Recebe a resposta da requisição
+			response = loads(response)																								# Decodifica o objeto JSON
+			
+			if(response["response"]["return"]):																									# Caso a resposta seja true
+				self.currentUser = response["response"]["user"]
+				self.currentUser["logado"] = True
+				self.Home()
+			else:																																			# Caso a resposta seja false
+				self.changeMSG(response["response"]["msg"],"red","login")									# Mostra mensagem de erro com cor azul
 
 	def handleLogout(self):
-		print("")
+		self.currentUser = {}
+		self.currentUser["logado"] = False
+		self.SignIn()
 
 	def handleSignUp(self):
 		user = self.entryUsername.get()
@@ -416,11 +438,28 @@ class Interface(Tk):
 		elif passw != cpass:
 			self.changeMSG("A senhas não são iguais",'red',"signup")
 		else:
+			self.entryPassword.delete('0', 'end')
+			self.entryCPassword.delete('0', 'end')
 			data = {}
+			data["rota"] = "pushUsuarios"
+			data["username"] = user
+			data["password"] = passw
+			server.sendto(dumps(data), ADDR)																					# Envia a reuisição e os dados para o servidor
+			response, address = server.recvfrom(BUFSIZ)																# Recebe a resposta da requisição
+			response = loads(response)																								# Decodifica o objeto JSON
+			if(response["response"]["return"]):																									# Caso a resposta seja true
+				self.changeMSG("Cadastrado com sucesso","green","signup")						# Mostra mensagem de sucesso com cor verde
+				self.entryUsername.delete('0', 'end')
+			else:																																			# Caso a resposta seja false
+				self.changeMSG(response["response"]["msg"],"red","signup")									# Mostra mensagem de erro com cor azul
+		
+		self.entryPassword.delete('0', 'end')
+		self.entryCPassword.delete('0', 'end')
 
 	def changeMSG(self,texto,color,screem):																							# Método para mudar a mensagem
 		self.lblres.destroy()																												# Destroi a antiga mensagem
-		if screem == "sbscribe":
+		
+		if screem == "subscribe":
 			self.lblres= Label(self.subscribeMovieScreem, text=texto,										# Cria novo label com o texto e cor de fundo passada
 													bg='{}'.format(color))
 		elif screem == "login":
@@ -434,7 +473,7 @@ class Interface(Tk):
 	def processaSobre(self):																											# Método para mostrar uma janela para mostrar mais sobre o programa
 		root = Tk()																																	# Cria a janela de ajuda
 		root.title('Sobre cliente')																									# Especifica o título da janela
-		root.geometry('600x200')																										# Define as dimenssões da janela
+		root.geometry('700x200')																										# Define as dimenssões da janela
 
 		text = Label(root, text=	'Essa é uma interface para vizualização de filmes'# Define o texto para ser exibido
 															' registrados em nosso servidor.\n\n'
