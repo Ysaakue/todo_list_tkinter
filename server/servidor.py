@@ -35,8 +35,7 @@ def cadastrarFilme(filme):																											# Função para cadastrar n
 	new_filme["diretores"] = filme["diretores"].split(",")
 	new_filme["atores"] = filme["atores"].split(",")
 	new_filme["roteiristas"] = filme["roteiristas"].split(",")
-	new_filme["likes"] = "0"
-	new_filme["dislikes"] = "0"
+	new_filme["avalicoes"] = {}
 	filmes.append(new_filme)																											# Adiciona o novo filme na lista
 	try:																																					# Tenta gravar a nova lista no arquivo
 		#with open('{}/databases/Filmes.json'.format(DIRNAME),"w") as file:

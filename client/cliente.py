@@ -1,4 +1,4 @@
-from tkinter import Tk, Button, PhotoImage, Label, Menu, Entry, Frame, Scrollbar, DISABLED, ttk
+from tkinter import Tk, Button, PhotoImage, Label, Menu, Entry, Frame, Scrollbar, ttk
 from socket import AF_INET, socket, SOCK_DGRAM, gethostname
 from pickle import loads, dumps
 from datetime import date
@@ -81,7 +81,7 @@ class Interface(Tk):
 			self.addB.config(state="disabled")
 		
 		if screem != "sign":
-			if self.currentUser["logado"] == True:
+			if self.currentUser["logado"]:
 				# Button de logout
 				self.logoutB=Button(self.toobarFrame,justify = "left",
 													command=self.handleLogout)
@@ -125,6 +125,9 @@ class Interface(Tk):
 		self.tree.pack(side="top", fill='x')																				# Posiciona a lista no top preenchendo lateralmente
 		
 		self.handleRefresh()																												# Recarrega para renderizar a lista de filmes
+
+		self.infoFrame = Frame(self.homeScreem)
+		self.infoFrame.pack()
 
 		self.currentScreem = "home"																									# Define que a tela atual é a home, por conta de referencia
 
@@ -293,44 +296,76 @@ class Interface(Tk):
 			if titulo == filme['titulo']:																							# Busca o filme com titulo correspondente para mostrar as informações
 				info=filme
 				break
-		try: 																																				# Tenta destruir as informações e mostra as informações do filme
-			self.lblTituloFilme.destroy()
-			self.lblAtoresFilme.destroy()
-			self.lblDiretoresFilme.destroy()
-			self.lblRoteiristasFilme.destroy()
-			#titulo
-			self.lblTituloFilme = Label(self.homeScreem,
-				text="TITULO:\n {}".format(info["titulo"]))
-			self.lblTituloFilme.pack()
-			#atores
-			self.lblAtoresFilme = Label(self.homeScreem, 
-				text="ATORES:\n {}".format("\n".join(info["atores"])))
-			self.lblAtoresFilme.pack()
-			#diretores
-			self.lblDiretoresFilme = Label(self.homeScreem,
-				text="DIRETORES:\n {}".format("\n".join(info["diretores"])))
-			self.lblDiretoresFilme.pack()
-			#roteiristas
-			self.lblRoteiristasFilme = Label(self.homeScreem,
-				text="ROTEIRISTAS:\n {}".format("\n".join(info["roteiristas"])))
-			self.lblRoteiristasFilme.pack()
-		except:																																			# Caso não existam entra em exeção e somente mostra as informações
-			#titulo
-			self.lblTituloFilme = Label(self.homeScreem,
-				text="TITULO:\n {}".format(info["titulo"]))
-			self.lblTituloFilme.pack()
-			#atores
-			self.lblAtoresFilme = Label(self.homeScreem,
-				text="ATORES:\n {}".format("\n".join(info["atores"])))
-			self.lblAtoresFilme.pack()
-			#diretores
-			self.lblDiretoresFilme = Label(self.homeScreem,
-				text="DIRETORES:\n {}".format("\n".join(info["diretores"])))
-			self.lblDiretoresFilme.pack()
-			#roteiristas
-			self.lblRoteiristasFilme = Label(self.homeScreem,
-				text="ROTEIRISTAS:\n {}".format("\n".join(info["roteiristas"])))
-			self.lblRoteiristasFilme.pack()
+		self.infoFrame.pack_forget()
+
+		self.infoFrame = Frame(self.homeScreem)
+
+		#titulo
+		self.lblTituloFilme = Label(self.infoFrame, justify="left",
+			text="TITULO:\n - {}".format(info["titulo"]), anchor="w")
+		self.lblTituloFilme.pack(fill="x")
+		#atores
+		self.lblAtoresFilme = Label(self.infoFrame, justify="left",
+			text="ATORES:\n - {}".format(", ".join(info["atores"])), anchor="w")
+		self.lblAtoresFilme.pack(fill="x")
+		#diretores
+		self.lblDiretoresFilme = Label(self.infoFrame, justify="left",
+			text="DIRETORES:\n - {}".format(", ".join(info["diretores"])), anchor="w")
+		self.lblDiretoresFilme.pack(fill="x")
+		#roteiristas
+		self.lblRoteiristasFilme = Label(self.infoFrame, justify="left", anchor="w",
+			text="ROTEIRISTAS:\n - {}".format(", ".join(info["roteiristas"])))
+		self.lblRoteiristasFilme.pack(fill="x")
+		like = 0
+		dislike = 0
+		for key in info["avaliacao"]:
+			if info["avaliacao"][key] == "like":
+				like+=1
+			else:
+				dislike+=1
+		#likes
+		self.lblLikesFilme = Label(self.infoFrame, justify="left", anchor="w",
+			text="\nLIKES: {}".format(like))
+		self.lblLikesFilme.pack(fill="x")
+		#dislikes
+		self.lblDislikesFilme = Label(self.infoFrame, justify="left", anchor="w",
+			text="DISLIKES: {}".format(dislike))
+		self.lblDislikesFilme.pack(fill="x")
+
+		if self.currentUser["logado"]:
+			self.avaliacaoFrame = Frame(self.infoFrame)
+			try:
+				avaliacao = info["avaliacao"][self.currentUser["username"]]
+			except:
+				avaliacao = "avaliar"
+
+			if avaliacao == "avaliar":
+				self.likebnt = Button(self.avaliacaoFrame, text="Like",
+																command=self.handleLike)
+				self.likebnt.pack(side="left",padx=2)
+				self.dislikebnt = Button(self.avaliacaoFrame, text="Dislike",
+																command=self.handleDislike)
+				self.dislikebnt.pack(side="left",padx=2)
+			
+			elif avaliacao == "like":
+				self.likebnt = Button(self.avaliacaoFrame, text="Liked",
+																state="disabled")
+				self.likebnt.pack()
+			
+			else:
+				self.dislikebnt = Button(self.avaliacaoFrame, text="Disliked",
+																state="disabled")
+				self.dislikebnt.pack()
+
+			self.avaliacaoFrame.pack()
+		
+		self.infoFrame.pack(fill="x")
+
+	def handleLike(self):
+		print(" ")
+
+	def handleDislike(self):
+		print()
 
 	def onlyRefresh(self):																												# Método para buscar filmes no servidor
 		data = {}																																		# Cria dictionary
