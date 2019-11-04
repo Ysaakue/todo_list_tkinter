@@ -73,7 +73,7 @@ def cadastrarUsuario(user):
 		#with open('{}/databases/Usuarios.json'.format(DIRNAME),"w") as file:
 		with open('Usuarios.json',"w") as file:
 			json.dump(users,file)
-			retorno = {}
+		retorno = {}
 		retorno["return"] = True
 		return retorno																															
 	except:																																				
@@ -89,12 +89,12 @@ def fazerLogin(user):
 	conteudo = open('Usuarios.json').read()
 	users = json.loads(conteudo)
 	if len(users) > 0:
-		for und in users:
-			if user["username"] == und["username"]:
-				if user["password"] == und["password"]:
+		for user2 in users:
+			if user["username"] == user2["username"]:
+				if user["password"] == user2["password"]:
 					retorno = {}
 					retorno["return"] = True
-					retorno["user"] = und
+					retorno["user"] = user2["username"]
 					return retorno
 				else:
 					retorno = {}

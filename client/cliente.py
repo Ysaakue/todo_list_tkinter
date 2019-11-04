@@ -88,7 +88,7 @@ class Interface(Tk):
 				self.photoLogout=PhotoImage(file="img/logout.png")
 				self.logoutB.config(image=self.photoLogout,width="20",height="20")
 				self.logoutB.pack(side="right", padx=5)
-				self.lblUser = Label(self.toobarFrame, text="{}".format(self.currentUser["username"]),
+				self.lblUser = Label(self.toobarFrame, text="{}".format(self.currentUser),
 															bg='gray25', fg = 'white smoke')
 				self.lblUser.pack(side="right",padx=5)
 			else:
@@ -316,6 +316,7 @@ class Interface(Tk):
 		self.lblRoteiristasFilme = Label(self.infoFrame, justify="left", anchor="w",
 			text="ROTEIRISTAS:\n - {}".format(", ".join(self.info["roteiristas"])))
 		self.lblRoteiristasFilme.pack(fill="x")
+		
 		like = 0
 		dislike = 0
 		for key in self.info["avaliacao"]:
@@ -323,6 +324,7 @@ class Interface(Tk):
 				like+=1
 			else:
 				dislike+=1
+		
 		#likes
 		self.lblLikesFilme = Label(self.infoFrame, justify="left", anchor="w",
 			text="\nLIKES: {}".format(like))
@@ -335,7 +337,7 @@ class Interface(Tk):
 		if self.currentUser["logado"]:
 			self.avaliacaoFrame = Frame(self.infoFrame)
 			try:
-				avaliacao = self.info["avaliacao"][self.currentUser["username"]]
+				avaliacao = self.info["avaliacao"][self.currentUser]
 			except:
 				avaliacao = "avaliar"
 
@@ -365,7 +367,7 @@ class Interface(Tk):
 		data = {}																																		# Cria dictionary
 		data["rota"] = "pushLike"																										# Define a rota para pegar os filmes no servidor
 		data["filme"] = self.info["titulo"]
-		data["user"] = self.currentUser["username"]
+		data["user"] = self.currentUser
 		server.sendto(dumps(data), ADDR)																						# Envia o dictionary
 		
 		response, address = server.recvfrom(BUFSIZ)																	# Recebe uma mensagem do servidor
@@ -380,7 +382,7 @@ class Interface(Tk):
 		data = {}																																		# Cria dictionary
 		data["rota"] = "pushDislike"																										# Define a rota para pegar os filmes no servidor
 		data["filme"] = self.info["titulo"]
-		data["user"] = self.currentUser["username"]
+		data["user"] = self.currentUser
 		server.sendto(dumps(data), ADDR)																						# Envia o dictionary
 		
 		response, address = server.recvfrom(BUFSIZ)																	# Recebe uma mensagem do servidor
