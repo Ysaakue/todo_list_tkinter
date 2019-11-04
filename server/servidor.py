@@ -107,6 +107,26 @@ def fazerLogin(user):
 	retorno["msg"] = "Usuario não encontrado"
 	return retorno
 
+def like(filme, user):
+	filmes = refresh()
+	for filme2 in filmes:
+		if filme2["titulo"] == filme:
+			filme2["avaliacao"][user] = "like"
+			with open('Filmes.json',"w") as file:
+				json.dump(filmes,file)
+			return True
+	return False
+
+def dislike(filme, user):
+	filmes = refresh()
+	for filme2 in filmes:
+		if filme2["titulo"] == filme:
+			filme2["avaliacao"][user] = "dislike"
+			with open('Filmes.json',"w") as file:
+				json.dump(filmes,file)
+			return True
+	return False
+
 while True:
 	req, address = server.recvfrom(BUFSIZ)																				# Recebe a requisição e guarda os dados e o endereço do solicitante
 	req = loads(req)																															# Decodifica o objeto JSON
@@ -123,6 +143,12 @@ while True:
 
 	elif(req["rota"] == "getUsuarios"):
 		data["response"] = fazerLogin(req)
+
+	elif(req["rota"] == "pushLike"):
+		data["response"] = like(req["filme"], req["user"])
+
+	elif(req["rota"] == "pushDislike"):
+		data["response"] = dislike(req["filme"], req["user"])
 
 	else:																																				# Caso a rota não seja encontrada
 		data["response"] = "Error 404 - Route Not Found"													# Armazena uma mensagem de erro

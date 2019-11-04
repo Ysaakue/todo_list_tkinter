@@ -289,12 +289,12 @@ class Interface(Tk):
 	def OnDoubleClick(self, event):																								# Método para identificar item clicado na lista
 		item = self.tree.selection()																								# Identifica item clicado
 		for i in item:
-			self.info(self.tree.item(i, "values")[0])																	# Chama método para mostrar os dados do filme
+			self.renderInfo(self.tree.item(i, "values")[0])																	# Chama método para mostrar os dados do filme
 
-	def info(self, titulo):																												# Método para mostrar informações do filme
+	def renderInfo(self, titulo):																												# Método para mostrar informações do filme
 		for filme in self.filmes:																										# Percorre os filmes
 			if titulo == filme['titulo']:																							# Busca o filme com titulo correspondente para mostrar as informações
-				info=filme
+				self.info=filme
 				break
 		self.infoFrame.pack_forget()
 
@@ -302,24 +302,24 @@ class Interface(Tk):
 
 		#titulo
 		self.lblTituloFilme = Label(self.infoFrame, justify="left",
-			text="TITULO:\n - {}".format(info["titulo"]), anchor="w")
+			text="TITULO:\n - {}".format(self.info["titulo"]), anchor="w")
 		self.lblTituloFilme.pack(fill="x")
 		#atores
 		self.lblAtoresFilme = Label(self.infoFrame, justify="left",
-			text="ATORES:\n - {}".format(", ".join(info["atores"])), anchor="w")
+			text="ATORES:\n - {}".format(", ".join(self.info["atores"])), anchor="w")
 		self.lblAtoresFilme.pack(fill="x")
 		#diretores
 		self.lblDiretoresFilme = Label(self.infoFrame, justify="left",
-			text="DIRETORES:\n - {}".format(", ".join(info["diretores"])), anchor="w")
+			text="DIRETORES:\n - {}".format(", ".join(self.info["diretores"])), anchor="w")
 		self.lblDiretoresFilme.pack(fill="x")
 		#roteiristas
 		self.lblRoteiristasFilme = Label(self.infoFrame, justify="left", anchor="w",
-			text="ROTEIRISTAS:\n - {}".format(", ".join(info["roteiristas"])))
+			text="ROTEIRISTAS:\n - {}".format(", ".join(self.info["roteiristas"])))
 		self.lblRoteiristasFilme.pack(fill="x")
 		like = 0
 		dislike = 0
-		for key in info["avaliacao"]:
-			if info["avaliacao"][key] == "like":
+		for key in self.info["avaliacao"]:
+			if self.info["avaliacao"][key] == "like":
 				like+=1
 			else:
 				dislike+=1
@@ -335,7 +335,7 @@ class Interface(Tk):
 		if self.currentUser["logado"]:
 			self.avaliacaoFrame = Frame(self.infoFrame)
 			try:
-				avaliacao = info["avaliacao"][self.currentUser["username"]]
+				avaliacao = self.info["avaliacao"][self.currentUser["username"]]
 			except:
 				avaliacao = "avaliar"
 
@@ -362,10 +362,34 @@ class Interface(Tk):
 		self.infoFrame.pack(fill="x")
 
 	def handleLike(self):
-		print(" ")
+		data = {}																																		# Cria dictionary
+		data["rota"] = "pushLike"																										# Define a rota para pegar os filmes no servidor
+		data["filme"] = self.info["titulo"]
+		data["user"] = self.currentUser["username"]
+		server.sendto(dumps(data), ADDR)																						# Envia o dictionary
+		
+		response, address = server.recvfrom(BUFSIZ)																	# Recebe uma mensagem do servidor
+		response = loads(response)																									# Decodifica a mensagem
+		if response["response"]:																										# Atribui os filmes a um atributo da classe
+			self.onlyRefresh()
+			self.renderInfo(self.info["titulo"])
+		else:
+			self.changeMSG("Ocorreu erro ao tentar avaliar", "red", "hate")
 
 	def handleDislike(self):
-		print()
+		data = {}																																		# Cria dictionary
+		data["rota"] = "pushDislike"																										# Define a rota para pegar os filmes no servidor
+		data["filme"] = self.info["titulo"]
+		data["user"] = self.currentUser["username"]
+		server.sendto(dumps(data), ADDR)																						# Envia o dictionary
+		
+		response, address = server.recvfrom(BUFSIZ)																	# Recebe uma mensagem do servidor
+		response = loads(response)																									# Decodifica a mensagem
+		if response["response"]:																										# Atribui os filmes a um atributo da classe
+			self.onlyRefresh()
+			self.renderInfo(self.info["titulo"])
+		else:
+			self.changeMSG("Ocorreu erro ao tentar avaliar", "red", "hate")
 
 	def onlyRefresh(self):																												# Método para buscar filmes no servidor
 		data = {}																																		# Cria dictionary
@@ -502,6 +526,9 @@ class Interface(Tk):
 		
 		elif screem == "signup":
 			self.lblres= Label(self.SignupScreem, text=texto,bg='{}'.format(color))
+
+		elif screem == "hate":
+			self.lblres= Label(self.avaliacaoFrame, text=texto,bg='{}'.format(color))
 
 		self.lblres.pack(pady=5, side="bottom")																			# Posiciona na parte de baixo da janela com espaçamento vertical
 
