@@ -1,5 +1,4 @@
 from tkinter import Tk, Button, PhotoImage, Label, Menu, Entry, Frame, Scrollbar, ttk
-from datetime import date
 from banco import Banco
 class Interface(Tk):
   def __init__(self,parent):																										# Método construtor
@@ -25,80 +24,73 @@ class Interface(Tk):
 
     topo.config(menu=self.menuBar)																							# Posiciona o menu no topo da janela
     
-  def toobar(self,screem):																											# Método para criar a barra de funcionalidades
-    self.toobarFrame = Frame(self)																							# Cria o Frame onde irão ficar os botões
-    self.toobarFrame.pack(side="top",pady=5,fill="x")														# Posiciona o Frame no topo da janela
+  def toobar(self,screem):
+    self.toobarFrame = Frame(self)
+    self.toobarFrame.pack(side="top",pady=5,fill="x")
     
     # Button de home
     self.homeB=Button(self.toobarFrame,justify = "left", command=self.Home)
     self.photoHome=PhotoImage(file="img/home.png")
     self.homeB.config(image=self.photoHome,width="20",height="20")
     self.homeB.pack(side="left", padx=5)
-    if screem == "home":																												# Verifica se é a tela de cadastro para gerar botão home
+    if screem == "home":
       self.homeB.config(state="disabled")
     
     # Button de recarregar
-    self.refreshB=Button(self.toobarFrame,justify = "left",											# Cria o botão para recarregar lista
-                          command=self.handleRefresh)
-    self.photoRefresh=PhotoImage(file="img/refresh.png")												# Cria uma imagem com referencia a um Refresh Icon
-    self.refreshB.config(image=self.photoRefresh,width="20",height="20")				# Associa a imagem ao botão
-    self.refreshB.pack(side="left")																							# Posiciona o botão ao lado esquerdo do Frame
+    self.refreshB=Button(self.toobarFrame,justify = "left",command=self.handleRefresh)
+    self.photoRefresh=PhotoImage(file="img/refresh.png")
+    self.refreshB.config(image=self.photoRefresh,width="20",height="20")
+    self.refreshB.pack(side="left")
     if screem != "home":
       self.refreshB.config(state="disabled")
 
     # Entry de busca
-    self.searchE = Entry(self.toobarFrame)																			# Cria um Entry para digitar busca
-    self.searchE.pack(side="left",padx=5)																				# Posiciona o Entry ao lado esquerdo do Frame com espaçamento lateral
-    self.searchE.bind("<Return>",lambda x: self.handleSearch())									# Faz busca com enter
+    self.searchE = Entry(self.toobarFrame)
+    self.searchE.pack(side="left",padx=5)
+    self.searchE.bind("<Return>",lambda x: self.handleSearch())
     if screem != "home":
       self.searchE.config(state="disabled")
 
     # Button de busca
     self.searchB=Button(self.toobarFrame,justify = "left",command=self.handleSearch)
-    self.photoSearch=PhotoImage(file="img/search.png")													# Cria uma imagem com referencia a um Search Icon
-    self.searchB.config(image=self.photoSearch,width="20",height="20")					# Associa a imagem ao botão
-    self.searchB.pack(side="left")																							# Posiciona o botão ao lado esquerdo do Frame
+    self.photoSearch=PhotoImage(file="img/search.png")
+    self.searchB.config(image=self.photoSearch,width="20",height="20")
+    self.searchB.pack(side="left")
     if screem != "home":
       self.searchB.config(state="disabled")
 
-    self.addB=Button(self.toobarFrame,justify = "left",command=self.SubscribeMovie)
-    self.photoAdd=PhotoImage(file="img/add.png")															# Cria uma imagem com referencia a um Add Icon
-    self.addB.config(image=self.photoAdd,width="20",height="20")							# Associa a imagem ao botão
-    self.addB.pack(side="left", padx=5)																				# Posiciona o botão ao lado esquerdo do Frame
-    if screem == "subscribe":																										# Verifica se é a home e gera botão para tela de cadastro
+    self.addB=Button(self.toobarFrame,justify = "left",command=self.Formulario)
+    self.photoAdd=PhotoImage(file="img/add.png")
+    self.addB.config(image=self.photoAdd,width="20",height="20")
+    self.addB.pack(side="left", padx=5)
+    if screem == "subscribe":
       self.addB.config(state="disabled")
     
   def Home(self):																																# Método para gerar tela inicial
-    if self.currentScreem == "signIn":																					# Verifica de estava na tela de login
-      self.toobarFrame.pack_forget()																						# Apaga barra de ferramentas da tela inicial
-      self.SigninScreem.pack_forget()																									# Apaga tela de login
-    elif self.currentScreem == "subscribeMovie":																# Verifica se estava na tela de cadastro de filmes
+    if self.currentScreem == "formulario":
       self.toobarFrame.pack_forget()																						# Apaga barra de ferramentas
       self.formulario.pack_forget()																		# Apaga tela de cadastro de filmes
-    elif self.currentScreem == "signUp":																				# Verifica de estava na tela de login
-      self.toobarFrame.pack_forget()																						# Apaga barra de ferramentas da tela inicial
-      self.SignupScreem.pack_forget()																						# Apaga tela de login
-
-    self.toobar("home")																													# Cria barra de ferramentas para home
     
-    self.homeScreem = Frame(None)																								# Cria frame para tela de login
+    self.toobar("home")
+    
+    self.homeScreem = Frame(None)
     self.homeScreem.pack(fill="both")
 
     self.tree = ttk.Treeview(	self.homeScreem,columns=self.titulos_treeview,show="headings")
     self.scbar = Scrollbar(self.homeScreem,orient="vertical",command=self.tree.yview)
-    self.tree.configure(yscrollcommand=self.scbar.set)													# Configura para TreeView usar a ScrollBar
+    self.tree.configure(yscrollcommand=self.scbar.set)
     
-    self.scbar.pack(side="right", fill="y")																			# Posiciona ScrollBar no lado direito para preencher a altura
-    self.tree.pack(side="top", fill='x')																				# Posiciona a lista no top preenchendo lateralmente
-    
-    self.handleRefresh()																												# Recarrega para renderizar a lista de filmes
+    self.scbar.pack(side="right", fill="y")
+    self.tree.pack(side="top", fill='both')
+
+    self.handleRefresh()
 
     self.infoFrame = Frame(self.homeScreem)
     self.infoFrame.pack()
 
     self.currentScreem = "home"																									# Define que a tela atual é a home, por conta de referencia
 
-  def SubscribeMovie(self,tarefa=[]):
+  def Formulario(self,tarefa=[]):
     botao = "Cadastrar"
     descricao = ""
     data = ""
@@ -132,12 +124,12 @@ class Interface(Tk):
     self.lblres= Label(self.formulario, text="")
     self.lblres.pack()
 
-    self.currentScreem = "subscribeMovie"
+    self.currentScreem = "formulario"
     
   def OnDoubleClick(self, event):																								# Método para identificar item clicado na lista
     item = self.tree.selection()																								# Identifica item clicado
     for i in item:
-      self.SubscribeMovie(self.tree.item(i, "values"))																	# Chama método para mostrar os dados do filme
+      self.Formulario(self.tree.item(i, "values"))																	# Chama método para mostrar os dados do filme
 
   def onlyRefresh(self):																												# Método para buscar filmes no servidor
     banco = Banco()
@@ -183,7 +175,7 @@ class Interface(Tk):
       item = (tarefa['id'], tarefa['descricao'], tarefa['data'])
       self.tree.insert('', 'end', values=item)
     
-    self.tree.pack(side="top", fill='x')																				# Posiciona a treeview na tela preenchendo 
+    self.tree.pack(side="top", fill='both')																				# Posiciona a treeview na tela preenchendo 
     self.tree.bind("<Double-1>", self.OnDoubleClick)														# Espera evento de click
 
   def handleCadastroFilme(self):																								# Método que envia requisição para o cadastro de um filme
