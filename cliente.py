@@ -35,7 +35,7 @@ class Interface(Tk):
       self.homeB.config(state="disabled")
     
     # Button de recarregar
-    self.refreshB=Button(self.toobarFrame,justify = "left",command=self.handleRefresh)
+    self.refreshB=Button(self.toobarFrame,justify = "left",command=self.atualizaTabela)
     self.photoRefresh=PhotoImage(file="img/refresh.png")
     self.refreshB.config(image=self.photoRefresh,width="20",height="20")
     self.refreshB.pack(side="left")
@@ -45,12 +45,12 @@ class Interface(Tk):
     # Entry de busca
     self.searchE = Entry(self.toobarFrame)
     self.searchE.pack(side="left",padx=5)
-    self.searchE.bind("<Return>",lambda x: self.handleSearch())
+    self.searchE.bind("<Return>",lambda x: self.buscaComFiltro())
     if screem != "home":
       self.searchE.config(state="disabled")
 
     # Button de busca
-    self.searchB=Button(self.toobarFrame,justify = "left",command=self.handleSearch)
+    self.searchB=Button(self.toobarFrame,justify = "left",command=self.buscaComFiltro)
     self.photoSearch=PhotoImage(file="img/search.png")
     self.searchB.config(image=self.photoSearch,width="20",height="20")
     self.searchB.pack(side="left")
@@ -74,14 +74,14 @@ class Interface(Tk):
     self.telaHome = Frame(None)
     self.telaHome.pack(fill="both")
 
-    self.tree = ttk.Treeview(	self.telaHome,columns=self.titulos_treeview,show="headings")
-    self.scbar = Scrollbar(self.telaHome,orient="vertical",command=self.tree.yview)
-    self.tree.configure(yscrollcommand=self.scbar.set)
+    self.tabela = ttk.Treeview(	self.telaHome,columns=self.titulos_treeview,show="headings")
+    self.scbar = Scrollbar(self.telaHome,orient="vertical",command=self.tabela.yview)
+    self.tabela.configure(yscrollcommand=self.scbar.set)
     
     self.scbar.pack(side="right", fill="y")
-    self.tree.pack(side="top", fill='both')
+    self.tabela.pack(side="top", fill='both')
 
-    self.handleRefresh()
+    self.atualizaTabela()
 
     self.currentScreem = "home"
 
@@ -126,12 +126,12 @@ class Interface(Tk):
 
     self.currentScreem = "formulario"
     
-  def OnDoubleClick(self, event):																								# Método para identificar item clicado na lista
-    item = self.tree.selection()																								# Identifica item clicado
+  def clicarLinha(self, event):
+    item = self.tabela.selection()
     for i in item:
-      self.Formulario(self.tree.item(i, "values"))																	# Chama método para mostrar os dados do filme
+      self.Formulario(self.tabela.item(i, "values"))
 
-  def onlyRefresh(self):																												# Método para buscar filmes no servidor
+  def buscaSemFiltro(self):
     banco = Banco()
     try:
       c = banco.conexao.cursor()
@@ -148,11 +148,11 @@ class Interface(Tk):
     except:
       print("Ocorreu um erro na busca do usuário")
     
-  def handleRefresh(self):																											# Método para receber os filmes do servidor e renderizar na tela
-    self.onlyRefresh()																													# Chama método para atualizar os filmes
-    self.mostrarTarefas(self.tarefas)																							# Chama o método para renderizar os filmes
+  def atualizaTabela(self):
+    self.buscaSemFiltro()
+    self.mostrarTarefas(self.tarefas)
 
-  def handleSearch(self):
+  def buscaComFiltro(self):
     busca = self.searchE.get()
     self.searchE.delete("0", "end")
     filmes_busca = []
@@ -174,22 +174,22 @@ class Interface(Tk):
 
     self.mostrarTarefas(filmes_busca)
 
-  def mostrarTarefas(self, tarefas):																								# Método para renderizar tarefas na tela
-    for i in self.tree.get_children():																					# Apaga todos os tarefas já na tela
-      self.tree.delete(i)
+  def mostrarTarefas(self, tarefas):
+    for i in self.tabela.get_children():
+      self.tabela.delete(i)
     
-    for col in self.titulos_treeview:																						# Monta cabeçario da treeview
-      self.tree.heading(col, text=col.title())
+    for col in self.titulos_treeview:
+      self.tabela.heading(col, text=col.title())
 
-    for tarefa in tarefas:																												# Percorre tarefas e inseri na treeview
+    for tarefa in tarefas:
       item = (tarefa['id'], tarefa['descricao'], tarefa['data'])
-      self.tree.insert('', 'end', values=item)
+      self.tabela.insert('', 'end', values=item)
     
-    self.tree.pack(side="top", fill='both')																				# Posiciona a treeview na tela preenchendo 
-    self.tree.bind("<Double-1>", self.OnDoubleClick)														# Espera evento de click
-
-  def cadastroTarefa(self):																								# Método que envia requisição para o cadastro de um filme
-    descricao = self.entryDescricao.get()																							# Pega os dados do input
+    self.tabela.pack(side="top", fill='both')
+    self.tabela.bind("<Double-1>", self.clicarLinha)
+    
+  def cadastroTarefa(self):
+    descricao = self.entryDescricao.get()
     data = self.entryData.get()
 
     if len(descricao)<1 or len(data)<1:
@@ -254,14 +254,14 @@ class Interface(Tk):
       self.changeMSG("Ocorreu um erro no cadastro da tarefa","red")
     self.tarefa_id = 0
 
-  def changeMSG(self,texto,color):																							# Método para mudar a mensagem
-    self.lblres.destroy()																												# Destroi a antiga mensagem
-    
+  def changeMSG(self,texto,color):
+    self.lblres.destroy()
+
     self.lblres= Label(self.telaFormulario, text=texto,bg='{}'.format(color))
 
-    self.lblres.pack(pady=5, side="bottom")																			# Posiciona na parte de baixo da janela com espaçamento vertical
+    self.lblres.pack(pady=5, side="bottom")
 
-  def processaSair(self):																												# Método para destruir janela do cliente
+  def processaSair(self):
     self.destroy()
 
 if __name__ == "__main__":
