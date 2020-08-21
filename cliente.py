@@ -144,26 +144,36 @@ class Interface(Tk):
         obj["data"] = linha[2]
         self.tarefas.append(obj)
       c.close()
-      return "Busca feita com sucesso!"
+      print("Busca feita com sucesso!")
     except:
-      return "Ocorreu um erro na busca do usuário"
+      print("Ocorreu um erro na busca do usuário")
     
   def handleRefresh(self):																											# Método para receber os filmes do servidor e renderizar na tela
     self.onlyRefresh()																													# Chama método para atualizar os filmes
     self.mostrarTarefas(self.tarefas)																							# Chama o método para renderizar os filmes
 
-  def handleSearch(self):																												# Método para fazer buscas nos filmes que já estão
-    busca = self.searchE.get()																									# Recebe string para fazer busca
+  def handleSearch(self):
+    busca = self.searchE.get()
     self.searchE.delete("0", "end")
-    filmes_busca = []																														# Cria lista
-    self.onlyRefresh()																													# Chama método para atualizar lista de filmes
+    filmes_busca = []
+    banco = Banco()
+    try:
+      c = banco.conexao.cursor()
+      query = "select * from tarefas where id like '%{0}%' or descricao like '%{0}%' or data like '%{0}%';".format(busca)
+      c.execute(query)
+      for linha in c:
+        obj = {}
+        obj["id"] = linha[0]
+        obj["descricao"] = linha[1]
+        obj["data"] = linha[2]
+        filmes_busca.append(obj)
+      c.close()
+      print("Busca feita com sucesso!")
+    except:
+      print("Ocorreu um erro na busca do usuário")
+
+    self.mostrarTarefas(filmes_busca)
     
-    for filme in self.tarefas:																										# Faz busca nos filmes
-      if busca.lower() in filme['titulo'].lower():
-        filmes_busca.append(filme)
-
-    self.mostrarTarefas(filmes_busca)																							# Chama método para renderizar filmes que batem com a busca
-
   def mostrarTarefas(self, tarefas):																								# Método para renderizar tarefas na tela
     for i in self.tree.get_children():																					# Apaga todos os tarefas já na tela
       self.tree.delete(i)
@@ -179,39 +189,27 @@ class Interface(Tk):
     self.tree.bind("<Double-1>", self.OnDoubleClick)														# Espera evento de click
 
   def handleCadastroFilme(self):																								# Método que envia requisição para o cadastro de um filme
-    titulo = self.entryDescricao.get()																							# Pega os dados do input
-    atores = self.entryData.get()
-    diretores = self.entryDiretores.get()
-    roteiristas = self.entryRoteiristas.get()
-    self.entryData.delete("0","end")
-    self.entryDiretores.delete("0","end")
-    self.entryRoteiristas.delete("0","end")
+    descricao = self.entryDescricao.get()																							# Pega os dados do input
+    data = self.entryData.get()
 
-    if len(titulo)<1 or len(atores)<1 or len(diretores)<1 or len(roteiristas)<1:# Caso todos os inputs estejam vazios
-      self.changeMSG("Todos os campos devem ser preenchidos",'red',"subscribe")	# Mostra mensagem de erro com cor vermelha
+    if len(descricao)<1 or len(data)<1:
+      self.changeMSG("Todos os campos devem ser preenchidos",'red')
     
     else:
       response = {}
-      if(response["response"]["return"]):																									# Caso a resposta seja true
-        self.changeMSG("Cadastrado com sucesso","green","subscribe")						# Mostra mensagem de sucesso com cor verde
+      if(response["response"]["return"]):
+        self.changeMSG("Cadastrado com sucesso","green")
         self.entryDescricao.delete("0","end")
-      else:																																			# Caso a resposta seja false
-        self.changeMSG(response["response"]["msg"],"red","subscribe")									# Mostra mensagem de erro com cor azul
+        self.entryData.delete("0","end")
+        self.entryDiretores.delete("0","end")
+        self.entryRoteiristas.delete("0","end")
+      else:
+        self.changeMSG(response["response"]["msg"],"red")
 
-  def changeMSG(self,texto,color,screem):																							# Método para mudar a mensagem
+  def changeMSG(self,texto,color):																							# Método para mudar a mensagem
     self.lblres.destroy()																												# Destroi a antiga mensagem
     
-    if screem == "subscribe":
-      self.lblres= Label(self.formulario, text=texto,bg='{}'.format(color))
-    
-    elif screem == "login":
-      self.lblres= Label(self.SigninScreem, text=texto,bg='{}'.format(color))
-    
-    elif screem == "signup":
-      self.lblres= Label(self.SignupScreem, text=texto,bg='{}'.format(color))
-
-    elif screem == "hate":
-      self.lblres= Label(self.avaliacaoFrame, text=texto,bg='{}'.format(color))
+    self.lblres= Label(self.formulario, text=texto,bg='{}'.format(color))
 
     self.lblres.pack(pady=5, side="bottom")																			# Posiciona na parte de baixo da janela com espaçamento vertical
 
