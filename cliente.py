@@ -1,26 +1,24 @@
 from tkinter import Tk, Button, PhotoImage, Label, Menu, Entry, Frame, Scrollbar, ttk
 from banco import Banco
 class Interface(Tk):
-  def __init__(self,parent):																										# Método construtor
-    Tk.__init__(self,parent)																										# Chama init da classe Tk
-    self.parent = parent																												# Define a conexão com parent
+  def __init__(self,parent):
+    Tk.__init__(self,parent)
+    self.parent = parent
     
-    self.attributes('-fullscreen',True)																					# Inicia janela em tela cheia
-    self.currentScreem = ""																											# Variavel de controle para gerar telas
-    self.currentUser = {}
-    self.currentUser["logado"] = False
-    self.titulos_treeview = ["Id", "Descricao", "Data"]			# Cabeçario para treeview
+    self.attributes('-fullscreen',True)
+    self.currentScreem = ""
+    self.titulos_treeview = ["Id", "Descricao", "Data"]
 
-    self.menu()																																	# Chama o metodo para criar menu
-    self.Home()																																	# Chama o método para criar a estrutura da janela
+    self.menu()
+    self.Home()
 
-  def menu(self):																																# Método para criar menu
-    topo = self.winfo_toplevel()																								# Cria widget na parte superior para o menu
-    self.menuBar = Menu(topo)																										# Cria uma barra de menus nesta janela
-      
-    mnuOpcoes = Menu(self.menuBar, tearoff=0)																		# Cria o menu Opções
-    mnuOpcoes.add_command(label="Sair", command=self.processaSair)							# Adiciona a função "Sair" que destroi a janela suas janelas filhas
-    self.menuBar.add_cascade(label="Opções", menu=mnuOpcoes)										# Adiciona as funções no menu Opções
+  def menu(self):
+    topo = self.winfo_toplevel()
+    self.menuBar = Menu(topo)
+
+    mnuOpcoes = Menu(self.menuBar, tearoff=0)
+    mnuOpcoes.add_command(label="Sair", command=self.processaSair)
+    self.menuBar.add_cascade(label="Opções", menu=mnuOpcoes)
 
     topo.config(menu=self.menuBar)																							# Posiciona o menu no topo da janela
     
@@ -63,21 +61,21 @@ class Interface(Tk):
     self.photoAdd=PhotoImage(file="img/add.png")
     self.addB.config(image=self.photoAdd,width="20",height="20")
     self.addB.pack(side="left", padx=5)
-    if screem == "subscribe":
+    if screem == "formulario":
       self.addB.config(state="disabled")
     
-  def Home(self):																																# Método para gerar tela inicial
+  def Home(self):
     if self.currentScreem == "formulario":
-      self.toobarFrame.pack_forget()																						# Apaga barra de ferramentas
-      self.formulario.pack_forget()																		# Apaga tela de cadastro de filmes
+      self.toobarFrame.pack_forget()
+      self.telaFormulario.pack_forget()
     
     self.toobar("home")
     
-    self.homeScreem = Frame(None)
-    self.homeScreem.pack(fill="both")
+    self.telaHome = Frame(None)
+    self.telaHome.pack(fill="both")
 
-    self.tree = ttk.Treeview(	self.homeScreem,columns=self.titulos_treeview,show="headings")
-    self.scbar = Scrollbar(self.homeScreem,orient="vertical",command=self.tree.yview)
+    self.tree = ttk.Treeview(	self.telaHome,columns=self.titulos_treeview,show="headings")
+    self.scbar = Scrollbar(self.telaHome,orient="vertical",command=self.tree.yview)
     self.tree.configure(yscrollcommand=self.scbar.set)
     
     self.scbar.pack(side="right", fill="y")
@@ -85,43 +83,45 @@ class Interface(Tk):
 
     self.handleRefresh()
 
-    self.infoFrame = Frame(self.homeScreem)
-    self.infoFrame.pack()
-
-    self.currentScreem = "home"																									# Define que a tela atual é a home, por conta de referencia
+    self.currentScreem = "home"
 
   def Formulario(self,tarefa=[]):
     self.toobarFrame.pack_forget()
-    self.homeScreem.pack_forget()
-    self.toobar("subscribe")
+    self.telaHome.pack_forget()
+    self.toobar("formulario")
 
-    self.formulario = Frame(None)
-    self.formulario.pack()
+    self.telaFormulario = Frame(None)
+    self.telaFormulario.pack()
 
-    self.btnCadastrar = Button(	self.formulario,text="Cadastrar",command=self.cadastroTarefa)
+    self.btnAcao = Button(	self.telaFormulario,text="Cadastrar",command=self.cadastroTarefa)
     descricao = ""
     data = ""
     if tarefa != []:
-      botao = "Atualizar"
+      self.btnAcao = Button(	self.telaFormulario,text="Atualizar",command=self.cadastroTarefa)
       descricao = tarefa[1]
       data = tarefa[2]
 
-    self.lblDescricao = Label(self.formulario, text="Descrição")
+    self.lblDescricao = Label(self.telaFormulario, text="Descrição")
     self.lblDescricao.pack()
-    self.entryDescricao = Entry(self.formulario)
+    self.entryDescricao = Entry(self.telaFormulario)
     self.entryDescricao.insert(0,descricao)
     self.entryDescricao.pack()
 
-    self.lblData= Label(self.formulario,text="Data")
+    self.lblData= Label(self.telaFormulario,text="Data")
     self.lblData.pack()
-    self.entryData = Entry(self.formulario)
+    self.entryData = Entry(self.telaFormulario)
     self.entryData.insert(0,data)
     self.entryData.pack()
     
-    
-    self.btnCadastrar.pack(pady=10,side="bottom")
+    if tarefa != []:
+      self.tarefa_id = tarefa[0]
+      self.btnAcao = Button(	self.telaFormulario,text="Atualizar",command=self.atualizarTarefa)
+      self.btnExcluir = Button(	self.telaFormulario,text="Excluir",command=self.excluirTarefa)
+      self.btnExcluir.pack(pady=10,side="bottom")
+    self.btnAcao.pack(pady=10,side="bottom")
 
-    self.lblres= Label(self.formulario, text="")
+
+    self.lblres= Label(self.telaFormulario, text="")
     self.lblres.pack()
 
     self.currentScreem = "formulario"
@@ -213,11 +213,51 @@ class Interface(Tk):
       except:
         print("exceção")
         self.changeMSG("Ocorreu um erro no cadastro da tarefa","red")
+  
+  def atualizarTarefa(self):
+    descricao = self.entryDescricao.get()
+    data = self.entryData.get()
+
+    if len(descricao)<1 or len(data)<1:
+      self.changeMSG("Todos os campos devem ser preenchidos",'red')
+    else:
+      banco = Banco()
+      try:
+        c = banco.conexao.cursor()
+        query = "update tarefas set descricao = '{0}',data = '{1}' where id = {2};".format(descricao,data,self.tarefa_id)
+        c.execute(query)
+        banco.conexao.commit()
+        self.changeMSG("Tarefa atualizada com sucesso","green")
+        self.entryDescricao.delete("0","end")
+        self.entryData.delete("0","end")
+        print("sucesso")
+        c.close()
+      except:
+        print("exceção")
+        self.changeMSG("Ocorreu um erro no cadastro da tarefa","red")
+    self.tarefa_id = 0
+
+  def excluirTarefa(self):
+    banco = Banco()
+    try:
+      c = banco.conexao.cursor()
+      query = "delete from tarefas where id ={0};".format(self.tarefa_id)
+      c.execute(query)
+      banco.conexao.commit()
+      self.changeMSG("Tarefa excluida com sucesso","green")
+      self.entryDescricao.delete("0","end")
+      self.entryData.delete("0","end")
+      print("sucesso")
+      c.close()
+    except:
+      print("exceção")
+      self.changeMSG("Ocorreu um erro no cadastro da tarefa","red")
+    self.tarefa_id = 0
 
   def changeMSG(self,texto,color):																							# Método para mudar a mensagem
     self.lblres.destroy()																												# Destroi a antiga mensagem
     
-    self.lblres= Label(self.formulario, text=texto,bg='{}'.format(color))
+    self.lblres= Label(self.telaFormulario, text=texto,bg='{}'.format(color))
 
     self.lblres.pack(pady=5, side="bottom")																			# Posiciona na parte de baixo da janela com espaçamento vertical
 
