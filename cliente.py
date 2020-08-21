@@ -91,20 +91,20 @@ class Interface(Tk):
     self.currentScreem = "home"																									# Define que a tela atual é a home, por conta de referencia
 
   def Formulario(self,tarefa=[]):
-    botao = "Cadastrar"
-    descricao = ""
-    data = ""
-    if tarefa != []:
-      botao = "Atualizar"
-      descricao = tarefa[1]
-      data = tarefa[2]
-    
     self.toobarFrame.pack_forget()
     self.homeScreem.pack_forget()
     self.toobar("subscribe")
 
     self.formulario = Frame(None)
     self.formulario.pack()
+
+    self.btnCadastrar = Button(	self.formulario,text="Cadastrar",command=self.cadastroTarefa)
+    descricao = ""
+    data = ""
+    if tarefa != []:
+      botao = "Atualizar"
+      descricao = tarefa[1]
+      data = tarefa[2]
 
     self.lblDescricao = Label(self.formulario, text="Descrição")
     self.lblDescricao.pack()
@@ -118,7 +118,7 @@ class Interface(Tk):
     self.entryData.insert(0,data)
     self.entryData.pack()
     
-    self.btnCadastrar = Button(	self.formulario,text=botao,command=self.handleCadastroFilme)
+    
     self.btnCadastrar.pack(pady=10,side="bottom")
 
     self.lblres= Label(self.formulario, text="")
@@ -144,7 +144,7 @@ class Interface(Tk):
         obj["data"] = linha[2]
         self.tarefas.append(obj)
       c.close()
-      print("Busca feita com sucesso!")
+      print("Busca sem filtro feita com sucesso!")
     except:
       print("Ocorreu um erro na busca do usuário")
     
@@ -168,12 +168,12 @@ class Interface(Tk):
         obj["data"] = linha[2]
         filmes_busca.append(obj)
       c.close()
-      print("Busca feita com sucesso!")
+      print("Busca com filtro feita com sucesso!")
     except:
       print("Ocorreu um erro na busca do usuário")
 
     self.mostrarTarefas(filmes_busca)
-    
+
   def mostrarTarefas(self, tarefas):																								# Método para renderizar tarefas na tela
     for i in self.tree.get_children():																					# Apaga todos os tarefas já na tela
       self.tree.delete(i)
@@ -188,23 +188,31 @@ class Interface(Tk):
     self.tree.pack(side="top", fill='both')																				# Posiciona a treeview na tela preenchendo 
     self.tree.bind("<Double-1>", self.OnDoubleClick)														# Espera evento de click
 
-  def handleCadastroFilme(self):																								# Método que envia requisição para o cadastro de um filme
+  def cadastroTarefa(self):																								# Método que envia requisição para o cadastro de um filme
     descricao = self.entryDescricao.get()																							# Pega os dados do input
     data = self.entryData.get()
 
     if len(descricao)<1 or len(data)<1:
       self.changeMSG("Todos os campos devem ser preenchidos",'red')
-    
     else:
-      response = {}
-      if(response["response"]["return"]):
-        self.changeMSG("Cadastrado com sucesso","green")
-        self.entryDescricao.delete("0","end")
-        self.entryData.delete("0","end")
-        self.entryDiretores.delete("0","end")
-        self.entryRoteiristas.delete("0","end")
-      else:
-        self.changeMSG(response["response"]["msg"],"red")
+      banco = Banco()
+      try:
+        c = banco.conexao.cursor()
+        query = "insert into tarefas (descricao,data) values ('{0}','{1}');".format(descricao,data)
+        c.execute(query)
+        banco.conexao.commit()
+        if c.lastrowid > 0:
+          self.changeMSG("Tarefa cadastrado com sucesso","green")
+          self.entryDescricao.delete("0","end")
+          self.entryData.delete("0","end")
+          print("sucesso")
+        else:
+          print("erro")
+          self.changeMSG("Ocorreu um erro no cadastro da tarefa","red")
+        c.close()
+      except:
+        print("exceção")
+        self.changeMSG("Ocorreu um erro no cadastro da tarefa","red")
 
   def changeMSG(self,texto,color):																							# Método para mudar a mensagem
     self.lblres.destroy()																												# Destroi a antiga mensagem
